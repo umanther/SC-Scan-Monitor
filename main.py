@@ -9,8 +9,8 @@ import tenable.errors
 from tenable.sc import TenableSC
 
 from config import validate_config_file
-from getkey import getKey
-from term_colors import color as c
+from utils.getkey import getKey
+from utils.term_colors import color as c
 
 
 def main():
