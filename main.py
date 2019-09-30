@@ -171,6 +171,8 @@ def all_scans_display(running_scans) -> str:
                 else:
                     chunks.append(chunk['ips'])
             for chunk in chunks:
+                if '|' in chunk:
+                    chunk = chunk.split('|')[0]
                 if '-' in chunk:
                     ips.add(netaddr.IPRange(chunk.split('-')[0], chunk.split('-')[1]))
                 else:
