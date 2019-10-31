@@ -8,9 +8,9 @@ import netaddr
 import tenable.errors
 from tenable.sc import TenableSC
 
-from config import validate_config_file
 from pyutils.getkey import getKey
 from pyutils.term_colors import color as c
+from tenable_sc_config.config import validate_config_file
 
 
 def main():
