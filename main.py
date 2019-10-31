@@ -9,8 +9,8 @@ import tenable.errors
 from tenable.sc import TenableSC
 
 from config import validate_config_file
-from utils.getkey import getKey
-from utils.term_colors import color as c
+from pyutils.getkey import getKey
+from pyutils.term_colors import color as c
 
 
 def main():
@@ -141,7 +141,7 @@ def all_scans_display(running_scans) -> str:
                        f"{c.get(c.INVERSE_OFF)}{c.get(c.BLINK_OFF)}"
         display += f"{c.get(c.FG_RGB(255, 255, 0))}" \
                    f"{int(progress['completedIPs']):>10,} " \
-                   f"{c.get(c.FG_BLACK)}" \
+                   f"{c.get(c.FG_BLACK, c.BG_255(34))}" \
                    f"IP(s) scanned " \
                    f"{c.get(c.FG_RGB(0, 255, 255))}"
         if int(progress['totalChecks']) and int(progress['completedChecks']):
