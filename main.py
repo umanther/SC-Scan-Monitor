@@ -1,20 +1,21 @@
 import os
 import threading
-import time
 from base64 import b64decode
 from datetime import timedelta
 
 import netaddr
 import tenable.errors
+import time
 from tenable.sc import TenableSC
 
-from pyutils.getkey import getKey
-from pyutils.term_colors import color as c
-from tenable_sc_config.config import validate_config_file
+import pyutils
+import tenable_sc_config
+
+c = pyutils.term_colors.color
 
 
 def main():
-    config, err = validate_config_file('config.ini')
+    config, err = tenable_sc_config.validate()
 
     if config:
         config_to_lower = {}
@@ -74,7 +75,7 @@ def main():
     def loop():
         global exit_loop
         while True:
-            key = getKey()
+            key = pyutils.getKey()
             if key == 'q':
                 with threading.Lock():
                     exit_loop = True
@@ -131,8 +132,8 @@ def all_scans_display(running_scans) -> str:
         start_time = time.strftime('%H:%M %a %b %d', time.localtime(int(scan['startTime']))) \
             if int(scan['startTime']) >= 0 else '<Initializing>'
         # creation_start_same = False
-        if 'scan' in scan.keys() and 'schedule' in scan['scan'].keys() and 'nextRun' in scan['scan']['schedule'].keys():
-            creation_start_same = scan['createdTime'] == scan['scan']['schedule']['nextRun']
+        # if 'scan' in scan.keys() and 'schedule' in scan['scan'].keys() and 'nextRun' in scan['scan']['schedule'].keys():
+        #   creation_start_same = scan['createdTime'] == scan['scan']['schedule']['nextRun']
         display += f"{c.get(c.BG_255(34), c.FG_RGB(0, 0, 0))}" \
                    f"{scan['name']:50.50} "
         if scan['status'] == 'Paused':

@@ -1,2 +1,2 @@
-netaddr == 0.7.19
-pyTenable >= 0.3.26
+netaddr==0.7.19
+pyTenable>=0.3.26
