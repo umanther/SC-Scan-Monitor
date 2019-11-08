@@ -7,11 +7,9 @@ import netaddr
 import tenable.errors
 import time
 from tenable.sc import TenableSC
+from ubiltools import getKey, color as c
 
-import pyutils
 import tenable_sc_config
-
-c = pyutils.term_colors.color
 
 
 def main():
@@ -75,7 +73,7 @@ def main():
     def loop():
         global exit_loop
         while True:
-            key = pyutils.getKey()
+            key = getKey()
             if key == 'q':
                 with threading.Lock():
                     exit_loop = True
