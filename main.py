@@ -5,15 +5,15 @@ from datetime import timedelta
 
 import netaddr
 import tenable.errors
-import tenable_sc_config as tsc
 from tenable.sc import TenableSC
+from tenable_sc_config import save, create_new, config
 from ubiltools import getKey, color as c
 
 
 def main():
-    if not tsc.config:
+    if not config:
         print('Creating new config file ... ', end='')
-        tsc.save(tsc.create_new())
+        save(create_new())
         print('Created')
         print('Edit the configuration file with the appropriate information and re-run.')
         exit()
@@ -26,11 +26,11 @@ def main():
         import logging
         try:
             logging.getLogger().setLevel(logging.NOTSET)
-            print(f"Looking for SecurityCenter at: '{tsc.config.host}' ... ", end='')
-            SC = TenableSC(tsc.config.host)
+            print(f"Looking for SecurityCenter at: '{config.hostname}' ... ", end='')
+            SC = TenableSC(config.hostname)
             print('Found.')
-            print(f"Attempting to log in as: '{tsc.config.username}' ... ", end='')
-            SC.login(user=tsc.config.username, passwd=tsc.config.password)
+            print(f"Attempting to log in as: '{config.username}' ... ", end='')
+            SC.login(user=config.username, passwd=config.password)
             if 'X-SecurityCenter' in SC._session.headers.keys():
                 print('Logged In.')
                 connected = True
@@ -49,7 +49,7 @@ def main():
             logging.getLogger().setLevel(logging.WARNING)
 
     if not connected:
-        print(f'Unable to connect to {tsc.config.host}')
+        print(f'Unable to connect to {config.hostname}')
         if isinstance(SC, tenable.sc.TenableSC) and 'X-SecurityCenter' in SC.session.headers:
             SC.logout()
         exit(1)
