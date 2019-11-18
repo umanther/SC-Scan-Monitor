@@ -1,35 +1,22 @@
 import os
 import threading
-from base64 import b64decode
+import time
 from datetime import timedelta
 
 import netaddr
 import tenable.errors
-import time
+import tenable_sc_config as tsc
 from tenable.sc import TenableSC
 from ubiltools import getKey, color as c
 
-import tenable_sc_config
-
 
 def main():
-    config, err = tenable_sc_config.validate()
-
-    if config:
-        config_to_lower = {}
-        for items in config:
-            config_to_lower[items.lower()] = items
-
-        url = config[config_to_lower['securitycenter']]['hostname']
-        username = config[config_to_lower['user']]['username']
-        try:
-            password = b64decode(config[config_to_lower['user']]['password64']).decode('utf-8')
-        except:
-            password = config[config_to_lower['user']]['password']
-
-        del config_to_lower, config, err
-    else:
-        raise err
+    if not tsc.config:
+        print('Creating new config file ... ', end='')
+        tsc.save(tsc.create_new())
+        print('Created')
+        print('Edit the configuration file with the appropriate information and re-run.')
+        exit()
 
     start = time.time()
     connected = False
@@ -39,18 +26,17 @@ def main():
         import logging
         try:
             logging.getLogger().setLevel(logging.NOTSET)
-            print(f"Looking for SecurityCenter at: '{url}' ... ", end='')
-            SC = TenableSC(url)
+            print(f"Looking for SecurityCenter at: '{tsc.config.host}' ... ", end='')
+            SC = TenableSC(tsc.config.host)
             print('Found.')
-            print(f"Attempting to log in as: '{username}' ... ", end='')
-            SC.login(user=username, passwd=password)
+            print(f"Attempting to log in as: '{tsc.config.username}' ... ", end='')
+            SC.login(user=tsc.config.username, passwd=tsc.config.password)
             if 'X-SecurityCenter' in SC._session.headers.keys():
                 print('Logged In.')
                 connected = True
-                del username, password
                 break
             else:
-                print("")
+                print()
         except tenable.errors.ConnectionError as err:
             print(f'{err.msg}\tRetrying for {round(start + 60 - time.time())} more seconds.')
             time.sleep(2)
@@ -63,12 +49,10 @@ def main():
             logging.getLogger().setLevel(logging.WARNING)
 
     if not connected:
-        print(f'Unable to connect to {url}')
+        print(f'Unable to connect to {tsc.config.host}')
         if isinstance(SC, tenable.sc.TenableSC) and 'X-SecurityCenter' in SC.session.headers:
             SC.logout()
         exit(1)
-
-    del url
 
     def loop():
         global exit_loop
