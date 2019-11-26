@@ -7,7 +7,8 @@ import netaddr
 import tenable.errors
 from tenable.sc import TenableSC
 from tenable_sc_config import save, create_new, config
-from ubiltools import getKey, color as c
+from ubiltools.getkey import getKey
+from ubiltools.term_colors import Color as C
 
 
 def main():
@@ -116,27 +117,27 @@ def all_scans_display(running_scans) -> str:
         # creation_start_same = False
         # if 'scan' in scan.keys() and 'schedule' in scan['scan'].keys() and 'nextRun' in scan['scan']['schedule'].keys():
         #   creation_start_same = scan['createdTime'] == scan['scan']['schedule']['nextRun']
-        display += f"{c.get(c.BG_255(34), c.FG_RGB(0, 0, 0))}" \
+        display += f"{C.get(C.BG_255(34), C.FG_RGB(0, 0, 0))}" \
                    f"{scan['name']:50.50} "
         if scan['status'] == 'Paused':
-            display += f"{c.get(c.BLINK_SLOW)}{c.get(c.INVERSE_VIDEO)}" \
+            display += f"{C.get(C.BLINK_SLOW)}{C.get(C.INVERSE_VIDEO)}" \
                        f"--PAUSED--" \
-                       f"{c.get(c.INVERSE_OFF)}{c.get(c.BLINK_OFF)}"
-        display += f"{c.get(c.FG_RGB(255, 255, 0))}" \
+                       f"{C.get(C.INVERSE_OFF)}{C.get(C.BLINK_OFF)}"
+        display += f"{C.get(C.FG_RGB(255, 255, 0))}" \
                    f"{int(progress['completedIPs']):>10,} " \
-                   f"{c.get(c.FG_BLACK, c.BG_255(34))}" \
+                   f"{C.get(C.FG_BLACK, C.BG_255(34))}" \
                    f"IP(s) scanned " \
-                   f"{c.get(c.FG_RGB(0, 255, 255))}"
+                   f"{C.get(C.FG_RGB(0, 255, 255))}"
         if int(progress['totalChecks']) and int(progress['completedChecks']):
             display += f"({float(progress['completedChecks']) / float(progress['totalChecks']):7.2%} Completed)"
         else:
             display += f"({float(progress['completedIPs']) / float(progress['totalIPs']):7.2%} Completed)"
-        display += f"{c.get(c.FG_BR_WHITE, c.BG_BLACK)}" \
+        display += f"{C.get(C.FG_BR_WHITE, C.BG_BLACK)}" \
                    f"{' ' * 5}" \
                    f"Run by: {initiator_name} " \
                    f"at {start_time} " \
                    f"for {str(timerunning).split('.')[0]}\r\n"
-        display += c.get(c.END)
+        display += C.get(C.END)
 
         # Find longest scanner name
         scanner_name_length = 0
