@@ -108,9 +108,14 @@ def main():
                     display = all_scans_display(running_scans=running_scans)
                     display_updated = True
             if exit_loop:
-                if 'X-SecurityCenter' in SC._session.headers:
+                logged_in = False
+                try:
+                    logged_in = isinstance(SC.status.status(), dict)
+                except tenable.errors.APIError:
+                    pass
+                if logged_in:
                     SC.logout()
-                    exit()
+                exit()
 
 
 def all_scans_display(running_scans) -> str:
