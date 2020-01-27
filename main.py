@@ -13,7 +13,7 @@ from ubiltools.term_colors import Color as C
 
 def main():
     if not config:
-        print('Creating new config file ... ', end='')
+        print('Creating new config file \u2026 ', end='')
         save(create_new())
         print('Created')
         print('Edit the configuration file with the appropriate information and re-run.')
@@ -27,12 +27,22 @@ def main():
         import logging
         try:
             logging.getLogger().setLevel(logging.NOTSET)
-            print(f"Looking for SecurityCenter at: '{config.hostname}' ... ", end='')
+            print(f"Looking for SecurityCenter at: '{config.hostname}' \u2026 ", end='')
             SC = TenableSC(config.hostname)
             print('Found.')
-            print(f"Attempting to log in as: '{config.username}' ... ", end='')
-            SC.login(user=config.username, passwd=config.password)
-            if 'X-SecurityCenter' in SC._session.headers.keys():
+            access_type, (access_name, access_secret) = config.get()
+            if access_type == 'api':
+                print(f"Attempting to log in with API Key \u2026 ", end='')
+                SC.login(access_key=access_name, secret_key=access_secret)
+            else:
+                print(f"Attempting to log in as: '{access_name}' \u2026 ", end='')
+                SC.login(user=access_name, passwd=access_secret)
+            logged_in = False
+            try:
+                logged_in = isinstance(SC.status.status(), dict)
+            except tenable.errors.APIError:
+                pass
+            if logged_in:
                 print('Logged In.')
                 connected = True
                 break
@@ -62,7 +72,7 @@ def main():
             if key == 'q':
                 with threading.Lock():
                     exit_loop = True
-                    print('Quitting ...')
+                    print('Quitting \u2026')
                     break
 
     thread = threading.Thread(name='GetKey Thread', target=loop, daemon=True)

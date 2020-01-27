@@ -1,4 +1,4 @@
 netaddr==0.7.19
-pyTenable>=1.0.0
+pyTenable>=1.0.5
 ubiltools==1.0.4
-tenable-sc-config==1.0.2
+tenable-sc-config==1.0.3
