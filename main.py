@@ -1,10 +1,10 @@
-import os
-import threading
 import time
-from datetime import timedelta
 
 import netaddr
+import os
 import tenable.errors
+import threading
+from datetime import timedelta
 from tenable.sc import TenableSC
 from tenable_sc_config import save, create_new, config
 from ubiltools.getkey import getKey
@@ -120,6 +120,7 @@ def main():
 
 def all_scans_display(running_scans) -> str:
     display = ''
+    progress = None
 
     for scan in running_scans:
         # --- DISPLAY SCAN HEADER BAR ---
@@ -132,15 +133,15 @@ def all_scans_display(running_scans) -> str:
         # creation_start_same = False
         # if 'scan' in scan.keys() and 'schedule' in scan['scan'].keys() and 'nextRun' in scan['scan']['schedule'].keys():
         #   creation_start_same = scan['createdTime'] == scan['scan']['schedule']['nextRun']
-        display += f"{C.get(C.BG_255(34), C.FG_RGB(0, 0, 0))}" \
+        display += f"{C.get(C.BG_BR_GREEN, C.FG_BLACK)}" \
                    f"{scan['name']:50.50} "
         if scan['status'] == 'Paused':
             display += f"{C.get(C.BLINK_SLOW)}{C.get(C.INVERSE_VIDEO)}" \
                        f"--PAUSED--" \
                        f"{C.get(C.INVERSE_OFF)}{C.get(C.BLINK_OFF)}"
-        display += f"{C.get(C.FG_RGB(255, 255, 0))}" \
+        display += f"{C.get(C.FG_BR_YELLOW)}" \
                    f"{int(progress['completedIPs']):>10,} " \
-                   f"{C.get(C.FG_BLACK, C.BG_255(34))}" \
+                   f"{C.get(C.FG_BLACK)}" \
                    f"IP(s) scanned " \
                    f"{C.get(C.FG_RGB(0, 255, 255))}"
         if int(progress['totalChecks']) and int(progress['completedChecks']):
@@ -148,50 +149,58 @@ def all_scans_display(running_scans) -> str:
         else:
             display += f"({float(progress['completedIPs']) / float(progress['totalIPs']):7.2%} Completed)"
         display += f"{C.get(C.FG_BR_WHITE, C.BG_BLACK)}" \
-                   f"{' ' * 5}" \
+                   "\n" \
+                   f"{C.get(C.FG_BLACK, C.BG_GREEN)}" \
                    f"Run by: {initiator_name} " \
-                   f"at {start_time} " \
-                   f"for {str(timerunning).split('.')[0]}\r\n"
+                   "at " \
+                   f"{C.get(C.FG_BR_YELLOW)}" \
+                   f"{start_time} " \
+                   f"{C.get(C.FG_BLACK)}" \
+                   "for " \
+                   f"{C.get(C.FG_RGB(0, 255, 255))}" \
+                   f"{str(timerunning).split('.')[0]}\r\n"
         display += C.get(C.END)
 
         # Find longest scanner name
         scanner_name_length = 0
-        for scanner in progress['scanners']:
-            scanner_name_length = \
-                len(scanner['name']) if len(scanner['name']) > scanner_name_length else scanner_name_length
+        if progress:
+            for scanner in progress['scanners']:
+                scanner_name_length = \
+                    len(scanner['name']) if len(scanner['name']) > scanner_name_length else scanner_name_length
 
         # --- DISPLAY EACH SCANNER INFO ---
-        for scanner in scan['progress']['scanners']:
-            ips = netaddr.IPSet()
-            chunks = []
-            for chunk in scanner['chunks']:
-                if len(chunk['ips'].split(',')) > 1:
-                    chunks.extend(chunk['ips'].split(','))
-                else:
-                    chunks.append(chunk['ips'])
-            for chunk in chunks:
-                if '|' in chunk:
-                    chunk = chunk.split('|')[0]
-                if '-' in chunk:
-                    ips.add(netaddr.IPRange(chunk.split('-')[0], chunk.split('-')[1]))
-                else:
-                    ips.add(netaddr.IPAddress(chunk))
-            range_string = [str(ip_range) for ip_range in ips.iter_ipranges()]
-            for index in range(len(range_string)):
-                if len(netaddr.IPRange(start=range_string[index].split('-')[0],
-                                       end=range_string[index].split('-')[1]).cidrs()) == 1:
-                    range_string[index] = str(
-                        netaddr.IPRange(start=range_string[index].split('-')[0],
-                                        end=range_string[index].split('-')[1]).cidrs()[0]
-                    ).split('/32')[0]
-            range_string = ', '.join(range_string)
-
-            if range_string:
-                for index in range(len(range_string.split(','))):
-                    if index == 0:
-                        display += f"\t{scanner['name']:<{scanner_name_length}} - {range_string.split(',')[index]}\r\n"
+        if progress:
+            for scanner in scan['progress']['scanners']:
+                ips = netaddr.IPSet()
+                chunks = []
+                for chunk in scanner['chunks']:
+                    if len(chunk['ips'].split(',')) > 1:
+                        chunks.extend(chunk['ips'].split(','))
                     else:
-                        display += f"\t{'':<{scanner_name_length + 3}}{range_string.split(',')[index].strip()}\r\n"
+                        chunks.append(chunk['ips'])
+                for chunk in chunks:
+                    if '|' in chunk:
+                        chunk = chunk.split('|')[0]
+                    if '-' in chunk:
+                        ips.add(netaddr.IPRange(chunk.split('-')[0], chunk.split('-')[1]))
+                    else:
+                        ips.add(netaddr.IPAddress(chunk))
+                range_string = [str(ip_range) for ip_range in ips.iter_ipranges()]
+                for index in range(len(range_string)):
+                    if len(netaddr.IPRange(start=range_string[index].split('-')[0],
+                                           end=range_string[index].split('-')[1]).cidrs()) == 1:
+                        range_string[index] = str(
+                            netaddr.IPRange(start=range_string[index].split('-')[0],
+                                            end=range_string[index].split('-')[1]).cidrs()[0]
+                        ).split('/32')[0]
+                range_string = ', '.join(range_string)
+
+                if range_string:
+                    for index in range(len(range_string.split(','))):
+                        if index == 0:
+                            display += f"\t{scanner['name']:<{scanner_name_length}} - {range_string.split(',')[index]}\r\n"
+                        else:
+                            display += f"\t{'':<{scanner_name_length + 3}}{range_string.split(',')[index].strip()}\r\n"
 
     return display or "No scans found"
 
