@@ -165,11 +165,8 @@ def all_scans_display(running_scans) -> str:
         scanner_name_length = 0
         if progress:
             for scanner in progress['scanners']:
-                scanner_name_length = \
-                    len(scanner['name']) if len(scanner['name']) > scanner_name_length else scanner_name_length
+                scanner_name_length = max(len(scanner['name']), scanner_name_length)
 
-        # --- DISPLAY EACH SCANNER INFO ---
-        if progress:
             for scanner in scan['progress']['scanners']:
                 ips = netaddr.IPSet()
                 chunks = []
@@ -193,9 +190,7 @@ def all_scans_display(running_scans) -> str:
                             netaddr.IPRange(start=range_string[index].split('-')[0],
                                             end=range_string[index].split('-')[1]).cidrs()[0]
                         ).split('/32')[0]
-                range_string = ', '.join(range_string)
-
-                if range_string:
+                if range_string := ', '.join(range_string):
                     for index in range(len(range_string.split(','))):
                         if index == 0:
                             display += f"\t{scanner['name']:<{scanner_name_length}} - {range_string.split(',')[index]}\r\n"
